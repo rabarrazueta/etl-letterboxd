@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: fact_diary_entries
+    description: "Hechos — cada visualización registrada en el diario Letterboxd"
+    columns:
+      - name: diary_entry_id
+        tests: [not_null, unique]
+      - name: movie_id
+        tests:
+          - relationships:
+              to: ref('dim_movie')
+              field: movie_id
+              where: "movie_id IS NOT NULL"
+      - name: watched_date_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+      - name: my_rating
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0.5
+              max_value: 5.0
+              inclusive: true
+              where: "my_rating IS NOT NULL"
+
+  - name: fact_ratings
+    description: "Hechos — ratings históricos de Letterboxd"
+    columns:
+      - name: rating_id
+        tests: [not_null, unique]
+      - name: movie_id
+        tests:
+          - relationships:
+              to: ref('dim_movie')
+              field: movie_id
+              where: "movie_id IS NOT NULL"
+      - name: rating_date_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+      - name: my_rating
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0.5
+              max_value: 5.0
+              inclusive: true

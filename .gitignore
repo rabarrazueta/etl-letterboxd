@@ -1,0 +1,55 @@
+# .gitignore
+
+# ----------------------------------------------------------------------
+# 1. Secretos y Configuración Local
+# ----------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+terraform/terraform.tfvars
+terraform/*.auto.tfvars
+
+# ----------------------------------------------------------------------
+# 2. Terraform
+# ----------------------------------------------------------------------
+# Ignorar el directorio de proveedores oculto
+terraform/.terraform/
+# Ignorar archivos de estado locales (¡CRÍTICO!)
+terraform/*.tfstate
+terraform/*.tfstate.backup
+# Ignorar planes guardados
+terraform/*.tfplan
+
+# ----------------------------------------------------------------------
+# 3. Python / Entorno Virtual
+# ----------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.venv*/
+venv/
+ENV/
+env.bak/
+.pytest_cache/
+
+# ----------------------------------------------------------------------
+# 4. dbt (Data Build Tool)
+# ----------------------------------------------------------------------
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+# Si decides guardar tu profiles.yml localmente en la carpeta del proyecto
+# (aunque normalmente va en ~/.dbt/)
+dbt/profiles.yml 
+
+# ----------------------------------------------------------------------
+# 5. Datos Locales (Fase 2 / Testing)
+# ----------------------------------------------------------------------
+# Nunca subas los CSVs originales ni las bases de datos locales
+data/
+*.csv
+*.json
+*.parquet
+*.duckdb
+*.db

@@ -1,0 +1,24 @@
+# dim_movie.yaml
+rules:
+  # 1. Unicidad: No debe haber IDs de películas duplicados en la dimensión actual.
+  - column: tmdb_id
+    rule_type: UNIQUE
+    dimension: UNIQUENESS
+    threshold: 1.0
+
+  # 2. Validez Lógica: El año de lanzamiento (release_year) debe ser razonable para la historia del cine.
+  - column: release_year
+    rule_type: RANGE
+    range:
+      min_value: 1888  # Roundhay Garden Scene, la primera película conocida.
+      max_value: 2030  # Películas anunciadas a futuro.
+    ignore_null: true  # Algunas películas no tienen fecha de estreno definida aún.
+    dimension: VALIDITY
+    threshold: 1.0
+
+  # 3. Consistencia: La duración (runtime) no puede ser negativa.
+  - column: runtime_minutes
+    rule_type: CUSTOM_SQL_EXPR
+    custom_sql_expr: "runtime_minutes >= 0"
+    dimension: CONSISTENCY
+    threshold: 1.0

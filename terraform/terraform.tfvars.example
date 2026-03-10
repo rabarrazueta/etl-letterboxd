@@ -1,0 +1,17 @@
+# terraform.tfvars.example
+# IMPORTANTE: Copia este archivo, renómbralo a 'terraform.tfvars' y completa tus datos reales.
+# NUNCA subas el archivo 'terraform.tfvars' a control de versiones.
+
+# El ID de tu proyecto en Google Cloud (lo encuentras en la consola de GCP)
+gcp_project_id = "mi-proyecto-gcp-123456"
+
+# La región donde se desplegarán los recursos físicos
+gcp_region = "us-central1"
+
+# Un nombre globalmente único para tu bucket de GCS (ej. tu-nombre-portfolio-datalake)
+data_lake_bucket_name = "tu-nombre-portfolio-datalake"
+
+# NOTA SOBRE SECRETOS:
+# La variable 'tmdb_api_key_secret' NO debe incluirse aquí ni en el tfvars real.
+# Debe pasarse SIEMPRE por línea de comandos usando:
+# export TF_VAR_tmdb_api_key_secret="tu_api_key_real"

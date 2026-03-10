@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Dimensión fecha generada: rango 2000-01-01 a 2030-12-31"
+    columns:
+      - name: date_id
+        tests: [not_null, unique]
+      - name: full_date
+        tests: [not_null, unique]
+      - name: year
+        tests: [not_null]
+
+  - name: dim_director
+    description: "Catálogo de directores únicos extraídos de TMDB"
+    columns:
+      - name: director_id
+        tests: [not_null, unique]
+      - name: director_tmdb_id
+        tests: [not_null, unique]
+      - name: director_name
+        tests: [not_null]
+
+  - name: dim_genre
+    description: "Catálogo de géneros únicos extraídos de TMDB"
+    columns:
+      - name: genre_id
+        tests: [not_null, unique]
+      - name: genre_name
+        tests: [not_null, unique]
+
+  - name: dim_movie
+    description: "Catálogo de películas — versión actual del snapshot SCD Tipo 2"
+    columns:
+      - name: movie_id
+        tests: [not_null, unique]
+      - name: letterboxd_uri
+        tests: [not_null, unique]
+      - name: title
+        tests: [not_null]
+      - name: director_id
+        tests:
+          - relationships:
+              to: ref('dim_director')
+              field: director_id
+              where: "director_id IS NOT NULL"
