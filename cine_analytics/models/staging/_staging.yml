@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_silver_movies
+    columns:
+      - name: letterboxd_uri
+        tests: [not_null, unique]
+      - name: enrichment_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SUCCESS', 'FUZZY_MATCH', 'NOT_FOUND', 'ERROR']
+      - name: title
+        tests: [not_null]
+
+  - name: stg_silver_diary_entries
+    columns:
+      - name: letterboxd_uri
+        tests: [not_null]
+      - name: watched_date
+        tests: [not_null]
+
+  - name: stg_silver_ratings
+    columns:
+      - name: letterboxd_uri
+        tests: [not_null]
+      - name: my_rating
+        tests: [not_null]

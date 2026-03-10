@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: bridge_movie_genre
+    description: "Tabla puente N:M entre dim_movie y dim_genre. Una fila por cada par (película, género)."
+    columns:
+      - name: bridge_id
+        tests: [not_null, unique]
+      - name: movie_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_movie')
+              field: movie_id
+      - name: genre_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_genre')
+              field: genre_id

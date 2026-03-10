@@ -1,0 +1,11 @@
+# fact_ratings.yaml
+rules:
+  # 1. Validez de Rango: El sistema de Letterboxd es de 0.5 a 5.0 estrellas.
+  - column: my_rating
+    rule_type: RANGE
+    range:
+      min_value: 0.5
+      max_value: 5.0
+    ignore_null: false # Un rating no puede ser nulo en la tabla de fact_ratings.
+    dimension: VALIDITY
+    threshold: 1.0

@@ -1,0 +1,27 @@
+# fact_diary_entries.yaml
+rules:
+  # 1. Completitud: La clave subrogada o URI de Letterboxd jamás debe ser nula.
+  - column: letterboxd_uri
+    rule_type: NOT_NULL
+    dimension: COMPLETENESS
+    threshold: 1.0 # Exigimos 100% de cumplimiento. Si una fila falla, el check falla.
+
+  # 2. Completitud: Toda entrada en el diario DEBE tener un ID de TMDB (valida que el enriquecimiento Silver funcionó).
+  - column: tmdb_id
+    rule_type: NOT_NULL
+    dimension: COMPLETENESS
+    threshold: 0.99 # Damos 1% de margen de error por si hay películas indie sin ID en TMDB.
+
+  # 3. Validez Lógica: No puedes registrar que viste una película en el futuro.
+  - column: watched_date
+    rule_type: CUSTOM_SQL_EXPR
+    custom_sql_expr: "watched_date <= CURRENT_DATE()"
+    dimension: VALIDITY
+    threshold: 1.0
+
+  # 4. Conformidad: Las URIs de Letterboxd deben seguir el patrón de URL correcto.
+  - column: letterboxd_uri
+    rule_type: REGEX
+    regex: "^https://letterboxd\\.com/film/.*"
+    dimension: CONFORMANCE
+    threshold: 1.0
