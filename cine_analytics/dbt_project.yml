@@ -24,8 +24,7 @@ models:
       +on_schema_change: sync_all_columns
 
 snapshots:
-  cine_analytics:
-    +target_schema: portafolio_gold
+  cine_analytics: {}
 
 vars:
   date_spine_start: '2000-01-01'

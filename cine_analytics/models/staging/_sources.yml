@@ -2,8 +2,6 @@ version: 2
 
 sources:
   - name: silver_staging
-    database: raspberry-9dcf6
-    schema: portfolio_gold
     description: "Tablas Silver exportadas desde Delta Lake (GCS) a BigQuery por el notebook 03_staging_to_bq.py"
     tables:
       - name: src_silver_movies

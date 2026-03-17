@@ -1,0 +1,25 @@
+selectors:
+  - name: staging
+    definition:
+      method: path
+      value: models/staging
+
+  - name: marts
+    definition:
+      method: path
+      value: models
+
+  - name: snapshots
+    definition:
+      method: path
+      value: snapshots
+
+  - name: gold
+    definition:
+      union:
+        - method: path
+          value: models/dimensions
+        - method: path
+          value: models/facts
+        - method: path
+          value: models/bridges

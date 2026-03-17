@@ -2,7 +2,6 @@
 
 {{
     config(
-        target_schema = 'portfolio_gold',
         unique_key    = 'letterboxd_uri',
         strategy      = 'check',
         check_cols    = [
