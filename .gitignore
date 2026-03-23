@@ -20,6 +20,16 @@ terraform/*.tfstate.backup
 # Ignorar planes guardados
 terraform/*.tfplan
 
+# (Portfolio hygiene) snapshots, logs, outputs o dumps locales de Terraform
+terraform/*state*snapshot*.txt
+terraform/*output*.txt
+terraform/*.log
+terraform/.terraformrc
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
 # ----------------------------------------------------------------------
 # 3. Python / Entorno Virtual
 # ----------------------------------------------------------------------
