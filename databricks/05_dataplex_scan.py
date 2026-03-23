@@ -5,13 +5,26 @@ import requests
 from google.auth import default
 from google.auth.transport.requests import Request
 
-dbutils.widgets.text("project_id", "mi-proyecto-default")
+dbutils.widgets.removeAll()
+dbutils.widgets.text("project_id", "YOUR_GCP_PROJECT_ID", "GCP Project ID")
+dbutils.widgets.text("location", "us-central1", "Dataplex Location")
+dbutils.widgets.text(
+    "scan_ids",
+    "fact-diary-entries-dq-scan,fact-ratings-dq-scan,dim-movie-dq-scan",
+    "DataScan IDs (comma-separated)"
+)
+
 PROJECT_ID = dbutils.widgets.get("project_id")
-SCAN_IDS    = [
-    "fact-diary-entries-dq-scan",
-    "fact-ratings-dq-scan",
-    "dim-movie-dq-scan",
-]
+LOCATION   = dbutils.widgets.get("location")
+
+SCAN_IDS = [s.strip() for s in dbutils.widgets.get("scan_ids").split(",") if s.strip()]
+
+if PROJECT_ID in ("", "YOUR_GCP_PROJECT_ID"):
+    raise ValueError("Config inválida: setea el widget 'project_id' con tu GCP Project ID real.")
+if LOCATION.strip() == "":
+    raise ValueError("Config inválida: setea el widget 'location' (ej: us-central1).")
+if not SCAN_IDS:
+    raise ValueError("Config inválida: 'scan_ids' no puede estar vacío.")
 
 # Obtener credenciales y verificar qué cuenta se está usando
 credentials, project = default()

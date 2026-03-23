@@ -7,13 +7,21 @@
 # COMMAND ----------
 
 dbutils.widgets.removeAll()
-dbutils.widgets.text("project_id",  "raspberry-9dcf6",          "GCP Project ID")
-dbutils.widgets.text("bucket_name", "robinson-adrian-letterboxd-portfolio-datalake", "GCS Bucket")
-dbutils.widgets.text("bq_dataset",  "portfolio_gold",           "BigQuery Dataset")
+dbutils.widgets.text("project_id",  "YOUR_GCP_PROJECT_ID", "GCP Project ID")
+dbutils.widgets.text("bucket_name", "YOUR_GCS_BUCKET",     "GCS Bucket (sin gs://)")
+dbutils.widgets.text("bq_dataset",  "portfolio_gold",      "BigQuery Dataset")
 
 PROJECT_ID = dbutils.widgets.get("project_id")
 BUCKET     = dbutils.widgets.get("bucket_name")
 BQ_DATASET = dbutils.widgets.get("bq_dataset")
+
+# Fail fast: evitar ejecuciones con placeholders
+if PROJECT_ID in ("", "YOUR_GCP_PROJECT_ID"):
+    raise ValueError("Config inválida: setea el widget 'project_id' con tu GCP Project ID real.")
+if BUCKET in ("", "YOUR_GCS_BUCKET"):
+    raise ValueError("Config inválida: setea el widget 'bucket_name' con tu bucket real (sin gs://).")
+if BQ_DATASET.strip() == "":
+    raise ValueError("Config inválida: setea el widget 'bq_dataset' con tu dataset de BigQuery.")
 
 SILVER_MOVIES_PATH   = f"gs://{BUCKET}/silver/movies"
 SILVER_DIARY_PATH    = f"gs://{BUCKET}/silver/diary_entries"

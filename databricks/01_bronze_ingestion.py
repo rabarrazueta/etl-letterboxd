@@ -1,17 +1,4 @@
 # Databricks notebook source
-# Celda de Diagnóstico
-try:
-    scopes = dbutils.secrets.listScopes()
-    print("Scopes disponibles:")
-    for s in scopes:
-        print(f" - {s.name}")
-    
-    print("\nVerificando llaves en 'gcp-secrets':")
-    keys = dbutils.secrets.list(scope="gcp-secrets")
-    for k in keys:
-        print(f" - {k.key}")
-except Exception as e:
-    print(f"\nERROR DETECTADO: {e}")
 
 # COMMAND ----------
 
@@ -72,12 +59,12 @@ try:
     found_names   = [f.name for f in landing_files if f.name.endswith(".csv")]
     missing       = [f for f in expected if f not in found_names]
     
-    print(f"✅ Archivos encontrados en landing ({len(found_names)}):")
+    print(f"Archivos encontrados en landing ({len(found_names)}):")
     for f in found_names:
         print(f"   - {f}")
     
     if missing:
-        print(f"\n⚠️  Archivos ausentes: {missing}")
+        print(f"\n Archivos ausentes: {missing}")
         print("   El pipeline continuará con los archivos disponibles.")
     
     FILES_TO_PROCESS = [f"{LANDING_PATH}{f}" for f in found_names]
@@ -86,17 +73,17 @@ except Exception as e:
     # Si landing está vacía pero Bronze ya tiene datos de hoy, no es error
     try:
         existing_bronze = dbutils.fs.ls(BRONZE_PATH)
-        print(f"ℹ️  Landing vacía pero Bronze ya tiene datos para {RUN_DATE}.")
+        print(f"ℹ Landing vacía pero Bronze ya tiene datos para {RUN_DATE}.")
         print(f"   Archivos en Bronze: {len(existing_bronze)}")
         FILES_TO_PROCESS = []
     except:
         raise Exception(
-            f"❌ No hay archivos en landing ({LANDING_PATH}) "
+            f"No hay archivos en landing ({LANDING_PATH}) "
             f"ni en Bronze ({BRONZE_PATH}). "
             f"Sube los CSV de Letterboxd a la landing zone antes de ejecutar."
         )
 
-print(f"\n📋 Total a procesar: {len(FILES_TO_PROCESS)} archivos")
+print(f"\n Total a procesar: {len(FILES_TO_PROCESS)} archivos")
 
 
 # COMMAND ----------
@@ -116,7 +103,7 @@ def ingest_csv_to_bronze(file_path: str, bronze_path: str, run_date: str, source
     output_path = f"{bronze_path}{table_name}/"
     
     print(f"\n{'─'*50}")
-    print(f"📄 Procesando: {file_name}")
+    print(f"Procesando: {file_name}")
     
     # 1. Leer el CSV (header=True infiere los nombres de columna)
     df = (spark.read
@@ -147,7 +134,7 @@ def ingest_csv_to_bronze(file_path: str, bronze_path: str, run_date: str, source
         .option("partitionOverwriteMode", "dynamic")
         .save(output_path))
     
-    print(f"   ✅ Escrito en: {output_path}")
+    print(f"   Escrito en: {output_path}")
     print(f"   Columnas finales: {df_enriched.columns}")
     
     return {"file": file_name, "rows": row_count, "status": "SUCCESS"}
@@ -161,7 +148,7 @@ if FILES_TO_PROCESS:
         result = ingest_csv_to_bronze(file_path, BRONZE_PATH, RUN_DATE, SOURCE)
         results.append(result)
 else:
-    print("ℹ️  Sin archivos nuevos que procesar. Bronze ya está actualizado.")
+    print("ℹ Sin archivos nuevos que procesar. Bronze ya está actualizado.")
 
 
 # COMMAND ----------
@@ -169,14 +156,14 @@ else:
 # ── CELDA 5: Validación Post-Ingesta ─────────────────────────────────────
 
 print("\n" + "="*60)
-print("📊 RESUMEN DE INGESTA BRONZE")
+print("RESUMEN DE INGESTA BRONZE")
 print("="*60)
 
 if results:
     total_rows = sum(r["rows"] for r in results)
-    print(f"✅ Archivos procesados: {len(results)}")
-    print(f"✅ Total filas ingestadas: {total_rows:,}")
-    print(f"✅ Partición creada: ingestion_date={RUN_DATE}")
+    print(f"Archivos procesados: {len(results)}")
+    print(f"Total filas ingestadas: {total_rows:,}")
+    print(f"Partición creada: ingestion_date={RUN_DATE}")
     print()
     
     for r in results:
@@ -194,8 +181,8 @@ if results:
 
 else:
     # Verificar el estado actual de Bronze (datos previos del Módulo 1)
-    print("ℹ️  No se procesaron archivos nuevos en este run.")
-    print("\n🔍 Estado actual de Bronze (datos existentes):")
+    print("ℹ No se procesaron archivos nuevos en este run.")
+    print("\nEstado actual de Bronze (datos existentes):")
     try:
         all_bronze = dbutils.fs.ls(f"gs://{BUCKET}/bronze/{SOURCE}/")
         for partition in all_bronze:
@@ -203,7 +190,7 @@ else:
     except:
         print("   (sin datos en Bronze)")
 
-print("\n🎬 Notebook 01_bronze_ingestion completado.")
+print("\nNotebook 01_bronze_ingestion completado.")
 
 
 # COMMAND ----------

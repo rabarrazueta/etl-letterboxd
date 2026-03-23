@@ -10,42 +10,18 @@
 # MAGIC | Silver Movies | Delta Lake | `gs://{bucket}/silver/movies/` |
 # MAGIC | Silver Diary | Delta Lake | `gs://{bucket}/silver/diary_entries/` |
 # MAGIC | Silver Ratings | Delta Lake | `gs://{bucket}/silver/ratings/` |
-# MAGIC
 # MAGIC **Clave de Upsert:** `letterboxd_uri` (siempre disponible) + `tmdb_id` cuando resuelto.
 # MAGIC **Restricción:** Este notebook corre SOLO en Jobs Compute. Prohibido All-Purpose en producción.
 
 # COMMAND ----------
 
-# Celda de diagnóstico CORREGIDA
-files = dbutils.fs.ls("gs://robinson-adrian-letterboxd-portfolio-datalake/bronze/")
-for f in files:
-    print(f.path)
-
-# COMMAND ----------
-
-key = dbutils.secrets.get(scope="portfolio-gcp-secrets", key="tmdb-api-key")
-print(f"Key length: {len(key)}")
-
-# COMMAND ----------
-
 # DBTITLE 1,Widget Parameters — Parametriza toda ejecución aquí
 dbutils.widgets.removeAll()
-dbutils.widgets.text(
-    "project_id", "raspberry-9dcf6", "GCP Project ID"
-)
-dbutils.widgets.text(
-    "bucket_name", "robinson-adrian-letterboxd-portfolio-datalake", "GCS Bucket (sin gs://)"
-)
-dbutils.widgets.text(
-    "ingestion_date", "", "Bronze Partition (vacío = última disponible)"
-)
-dbutils.widgets.dropdown(
-    "run_mode", "incremental", ["incremental", "full_refresh"],
-    "Run Mode"
-)
-dbutils.widgets.text(
-    "tmdb_concurrency", "40", "Concurrent TMDB requests (max 45)"
-)
+dbutils.widgets.text("project_id", "YOUR_GCP_PROJECT_ID", "GCP Project ID")
+dbutils.widgets.text("bucket_name", "YOUR_GCS_BUCKET", "GCS Bucket (sin gs://)")
+dbutils.widgets.text("ingestion_date", "", "Bronze Partition (vacío = última disponible)")
+dbutils.widgets.dropdown("run_mode", "incremental", ["incremental", "full_refresh"], "Run Mode")
+dbutils.widgets.text("tmdb_concurrency", "40", "Concurrent TMDB requests (max 45)")
 
 # COMMAND ----------
 
