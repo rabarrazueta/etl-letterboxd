@@ -55,6 +55,23 @@ Estas tablas son las fuentes que consume el proyecto dbt (`cine_analytics/`).
 
 > Este notebook debe estar parametrizado (sin rutas personales hardcodeadas) y alineado con `cine_analytics/README.md`.
 
+#### Parámetros (widgets) — 04_dbt_run.py
+
+Este notebook **genera automáticamente** `~/.dbt/profiles.yml` en el cluster usando el método `service-account` (keyfile JSON en Workspace).
+
+Widgets requeridos:
+
+- `dbt_project_dir`: ruta a la carpeta dbt dentro del repo (ej: `/Workspace/Repos/<tu_usuario>/etl-letterboxd/cine_analytics`)
+- `gcp_project_id`: GCP Project ID real
+- `bq_dataset`: dataset donde viven **inputs** (`src_silver_*`) y **outputs** (tablas dbt)
+- `bq_location`: ubicación de BigQuery (ej: `US`)
+- `json_key_path`: ruta del keyfile JSON dentro del Workspace (ej: `/Workspace/Users/<tu_usuario>/secrets/gcp-sa-key.json`)
+
+Comandos ejecutados:
+- `dbt deps`
+- `dbt snapshot`
+- `dbt build`
+
 ---
 
 ### 05 — `05_dataplex_scan.py`
@@ -67,7 +84,7 @@ Estas tablas son las fuentes que consume el proyecto dbt (`cine_analytics/`).
 
 ---
 
-## ⚙️ Parámetros (widgets) recomendados
+## Parámetros (widgets) recomendados
 
 En general, los notebooks usan (o deberían usar) estos parámetros:
 

@@ -22,8 +22,7 @@ dbutils.widgets.text("bucket_name", "YOUR_GCS_BUCKET", "GCS Bucket (sin gs://)")
 dbutils.widgets.text("ingestion_date", "", "Bronze Partition (vacío = última disponible)")
 dbutils.widgets.dropdown("run_mode", "incremental", ["incremental", "full_refresh"], "Run Mode")
 dbutils.widgets.text("tmdb_concurrency", "40", "Concurrent TMDB requests (max 45)")
-
-# COMMAND ----------
+dbutils.widgets.text("secret_scope", "gcp-secrets", "Databricks Secret Scope (opcional)")
 
 # DBTITLE 1,Imports
 import os
@@ -64,11 +63,12 @@ logger = logging.getLogger("silver_pipeline")
 # COMMAND ----------
 
 # DBTITLE 1,Runtime Configuration
-PROJECT_ID      = dbutils.widgets.get("project_id")
-BUCKET          = dbutils.widgets.get("bucket_name")
-INGESTION_DATE  = dbutils.widgets.get("ingestion_date").strip() or None
-RUN_MODE        = dbutils.widgets.get("run_mode")
+PROJECT_ID       = dbutils.widgets.get("project_id")
+BUCKET           = dbutils.widgets.get("bucket_name")
+INGESTION_DATE   = dbutils.widgets.get("ingestion_date").strip() or None
+RUN_MODE         = dbutils.widgets.get("run_mode")
 TMDB_CONCURRENCY = min(int(dbutils.widgets.get("tmdb_concurrency")), 45)
+SECRET_SCOPE     = dbutils.widgets.get("secret_scope").strip() or None
 
 # Paths — toda la lógica de storage parametrizada, nunca hardcodeada
 BRONZE_BASE          = f"gs://{BUCKET}/bronze/letterboxd"
@@ -88,6 +88,12 @@ print(f"▶ Bucket:        {BUCKET}")
 print(f"▶ Run Mode:      {RUN_MODE}")
 print(f"▶ TMDB Workers:  {TMDB_CONCURRENCY}")
 print(f"▶ Pipeline TS:   {PIPELINE_RUN_STR}")
+
+# Fail fast: evitar correr con placeholders
+if PROJECT_ID in ("", "YOUR_GCP_PROJECT_ID"):
+    raise ValueError("Config inválida: setea el widget 'project_id' con tu GCP Project ID real.")
+if BUCKET in ("", "YOUR_GCS_BUCKET"):
+    raise ValueError("Config inválida: setea el widget 'bucket_name' con tu bucket real (sin gs://).")
 
 # COMMAND ----------
 
@@ -110,19 +116,23 @@ def get_gcp_secret(secret_id: str, project_id: str = PROJECT_ID) -> str:
     return resp.payload.data.decode("UTF-8")
 
 
-# Intentar primero desde Databricks scope (si fue registrado manualmente),
-# fallback directo a Secret Manager vía ADC.
+# Intentar primero desde Databricks Secret Scope (si existe),
+# fallback directo a GCP Secret Manager vía ADC.
 try:
+    if not SECRET_SCOPE:
+        raise ValueError("SECRET_SCOPE vacío (se usará fallback a Secret Manager)")
+
     TMDB_API_KEY = dbutils.secrets.get(
-        scope="portfolio-gcp-secrets", key="tmdb-api-key"
+        scope=SECRET_SCOPE,
+        key="tmdb-api-key",
     )
-    logger.info("✅ TMDB key cargada desde Databricks Secret Scope")
-except Exception:
+    logger.info(f"✅ TMDB key cargada desde Databricks Secret Scope: {SECRET_SCOPE}")
+except Exception as e:
     TMDB_API_KEY = get_gcp_secret("tmdb-api-key")
-    logger.info("✅ TMDB key cargada desde GCP Secret Manager (ADC directo)")
+    logger.info(f"✅ TMDB key cargada desde GCP Secret Manager (ADC directo). Detalle: {type(e).__name__}")
 
 # Validar sin revelar el valor
-assert len(TMDB_API_KEY) > 20, "⛔ TMDB API Key inválida — verificar Secret Manager"
+assert len(TMDB_API_KEY) > 20, "TMDB API Key inválida — verificar Secret Manager"
 
 # COMMAND ----------
 
