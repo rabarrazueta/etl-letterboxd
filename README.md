@@ -307,8 +307,11 @@ etl-letterboxd/
 # 1. Clonar y configurar variables
 git clone https://github.com/rabarrazueta/etl-letterboxd.git
 cd etl-letterboxd
-cp .env.example .env
-# Editar .env con tus valores
+> Importante: **Databricks Jobs NO consumen `.env`**.  
+> En **Fase 1**, la configuración se hace con:
+> - Variables de Terraform (`terraform.tfvars` / `terraform.tfvars.example`)
+> - Secrets (Databricks Secret Scope o GCP Secret Manager vía ADC)
+> - Widgets de Databricks Jobs
 
 # 2. Configurar alertas de presupuesto ANTES de desplegar
 # GCP Billing Console → Budgets & Alerts → 25%, 50%, 75%, 90%
