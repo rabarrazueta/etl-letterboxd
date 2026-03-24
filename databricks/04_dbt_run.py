@@ -15,8 +15,6 @@ subprocess.run([
 ], check=True)
 
 # ─── 2. CONFIGURACIÓN DE RUTAS ──────────────────────────────────────────────
-import os
-
 dbutils.widgets.removeAll()
 dbutils.widgets.text("dbt_project_dir", "/Workspace/Repos/<tu_usuario>/etl-letterboxd/cine_analytics", "DBT Project Dir")
 dbutils.widgets.text("gcp_project_id", "YOUR_GCP_PROJECT_ID", "GCP Project ID")

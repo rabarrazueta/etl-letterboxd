@@ -4,8 +4,8 @@ import httpx
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 from dotenv import load_dotenv
 
-# Cargar .env
-load_dotenv()
+# Cargar .env (CREA TU INSTANCIA)
+# load_dotenv()
 
 class TMDBRateLimitError(Exception):
     """Excepción personalizada para errores 429 de TMDB."""

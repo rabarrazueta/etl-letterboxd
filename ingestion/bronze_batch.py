@@ -1,7 +1,9 @@
 # ingestion/bronze_batch.py
 import os
-# --- PARCHE PARA BLOQUEAR EL ERROR SSL DE WINDOWS/ANTIVIRUS ---
-os.environ.pop("SSLKEYLOGFILE", None)
+# --- Workaround opcional para entornos Windows/antivirus que rompen SSL ---
+# Actívalo solo si lo necesitas: export DISABLE_SSLKEYLOGFILE_PATCH=true
+if os.getenv("DISABLE_SSLKEYLOGFILE_PATCH", "false").lower() != "true":
+    os.environ.pop("SSLKEYLOGFILE", None)
 from datetime import datetime
 from dotenv import load_dotenv
 from ingestion.storage import StorageManager
@@ -18,12 +20,12 @@ def run_letterboxd_ingestion():
     load_dotenv(override=True) 
 
     backend = os.getenv("STORAGE_BACKEND")
-    bucket_name = os.getenv("GCS_BUCKET_NAME")
+    bucket_name = os.getenv("GCS_BUCKET")
     local_source_dir = os.getenv("LOCAL_STORAGE_PATH", "./data")
 
     # Validación de seguridad ("Fail Fast")
     if not backend or not bucket_name:
-        raise ValueError("Faltan variables críticas en el archivo .env (STORAGE_BACKEND o GCS_BUCKET_NAME)")
+        raise ValueError("Faltan variables críticas en el archivo .env (STORAGE_BACKEND o GCS_BUCKET)")
 
     # 2. Instanciar la capa de abstracción
     storage = StorageManager(

@@ -1,7 +1,6 @@
 # ingestion/storage.py
 import os
 import fsspec
-from typing import List
 
 class StorageManager:
     """
@@ -17,7 +16,9 @@ class StorageManager:
         # Configuración dinámica del filesystem base
         if self.backend == "gcs":
             self.base_uri = f"gs://{self.bucket_name}"
-            # Requiere que GOOGLE_APPLICATION_CREDENTIALS esté en el entorno
+            # Auth:
+            # - Local: usualmente GOOGLE_APPLICATION_CREDENTIALS
+            # - Cloud: ADC / Service Account del runtime
             self.fs = fsspec.filesystem("gcs") 
             print(f"🔧 StorageManager inicializado en modo CLOUD (GCS: {self.base_uri})")
         elif self.backend == "local":
