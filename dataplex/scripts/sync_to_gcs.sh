@@ -2,11 +2,12 @@
 # Archivo: dataplex/scripts/sync_to_gcs.sh
 # Propósito: Sincronizar las reglas locales de DQ hacia el Data Lake en GCP.
 
-# 1. Definir variables estrictas (fácil de cambiar si clonas el repo en otro entorno)
-PROJECT_ID="raspberry-9dcf6"
-BUCKET_NAME="robinson-adrian-letterboxd-portfolio-datalake" # REEMPLAZA ESTO por el nombre real de tu bucket
-LOCAL_RULES_DIR="../dq_rules"
-GCS_TARGET_DIR="gs://${BUCKET_NAME}/dataplex_rules"
+# 1. Definir variables estrictas (MODIFICAR CON TUS DATOS PROPIOS)
+PROJECT_ID="YOUR_GCP_PROJECT_ID"
+BUCKET_NAME="${BUCKET_NAME:?Error: define BUCKET_NAME (ej: export BUCKET_NAME=\"<tu-bucket>\")}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOCAL_RULES_DIR="${SCRIPT_DIR}/../dq_rules"
+GCS_TARGET_DIR="${GCS_TARGET_DIR:-gs://${BUCKET_NAME}/dataplex_rules}"
 
 echo "======================================================"
 echo "🚀 Iniciando sincronización de reglas Dataplex DQ..."

@@ -19,6 +19,8 @@ terraform/*.tfstate
 terraform/*.tfstate.backup
 # Ignorar planes guardados
 terraform/*.tfplan
+# Terraform backend file (local only)
+terraform/backend.tf
 
 # (Portfolio hygiene) snapshots, logs, outputs o dumps locales de Terraform
 terraform/*state*snapshot*.txt

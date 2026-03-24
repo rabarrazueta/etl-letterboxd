@@ -1,10 +1,11 @@
 -- Archivo: dataplex/bq_setup/create_dq_results_dataset.sql
 -- Propósito: Crear el entorno analítico para los metadatos de calidad de datos.
+-- Reemplaza YOUR_GCP_PROJECT_ID por tu Project ID real antes de ejecutar.
 
-CREATE SCHEMA IF NOT EXISTS `raspberry-9dcf6.dq_results`
+CREATE SCHEMA IF NOT EXISTS `YOUR_GCP_PROJECT_ID.dq_results`
 OPTIONS (
   description = 'Dataset dedicado a almacenar los resultados históricos de los escaneos de Google Cloud Dataplex Auto DQ.',
-  location = 'us-central1',
+  location = 'YOUR_BQ_LOCATION',
   labels = [('environment', 'production'), ('domain', 'data_governance')]
 );
 

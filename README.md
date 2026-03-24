@@ -39,7 +39,7 @@ Este proyecto construye un **producto de datos observable y certificado**:
 
 ### Visión General — Doble Arquitectura Desacoplada
 
-El código de transformación es **agnóstico a la infraestructura** mediante una capa de abstracción con `fsspec`. Cambiar de GCP a un VPS de $15/mes requiere modificar **únicamente el `.env`**.
+El código de transformación es **agnóstico a la infraestructura** mediante una capa de abstracción con `fsspec`. En Fase 2 el switch es `.env`; en Fase 1 se configura con widgets + secrets + IaC.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -317,10 +317,23 @@ cd etl-letterboxd
 # GCP Billing Console → Budgets & Alerts → 25%, 50%, 75%, 90%
 
 # 3. Provisionar infraestructura
+
+### Terraform backend (state remoto en GCS)
+
+1) Crea un bucket para tfstate (ej: `<tu-proyecto>-tfstate`).
+2) Copia el ejemplo y edítalo:
+
+```bash
+cp terraform/backend.tf.example terraform/backend.tf
+
+3)Edita terraform/backend.tf y reemplaza YOUR_TFSTATE_BUCKET.
+4)Luego ejecuta:
+
 cd terraform
 terraform init
 terraform plan
 terraform apply
+
 
 # 4. Subir CSVs de Letterboxd a Bronze
 gsutil cp *.csv gs://<proyecto>-datalake/bronze/letterboxd/ingestion_date=$(date +%Y-%m-%d)/
