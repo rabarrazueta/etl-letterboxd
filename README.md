@@ -14,7 +14,7 @@
 
 > **Este es un pipeline de datos enterprise-grade que analiza hábitos cinematográficos personales** — desde CSVs crudos de Letterboxd hasta un dashboard interactivo con gobernanza de datos activa, desplegado en Google Cloud Platform con arquitectura Medallion y Star Schema.
 
-🔗 **[Ver Dashboard en Vivo →](https://lookerstudio.google.com/reporting/a0360354-2529-4b3c-ba17-3939eef22704)** &nbsp;|&nbsp; 📊 **[Explorar BigQuery Gold Layer →](#)** &nbsp;|&nbsp; 📝 **[Arquitectura Completa →](#arquitectura)**
+🔗 **[Ver Dashboard en Vivo →](https://lookerstudio.google.com/reporting/a0360354-2529-4b3c-ba17-3939eef22704)** &nbsp;|&nbsp; 📝 **[Arquitectura Completa →](#arquitectura)**
 
 ---
 
@@ -107,7 +107,7 @@ watched.csv           -  Enriquecimiento TMDB     dim_date
 | **Infraestructura como Código** | Terraform (GCP + Databricks providers) | GCS, BigQuery, IAM, Secret Manager, Databricks workspace |
 | **Dashboard** | Looker Studio | URL pública compartible, conector nativo BigQuery |
 
-### Fase 2 — DigitalOcean (Producción Personal) - en Proceso
+### Fase 2 — DigitalOcean (Producción Personal) - en Proceso, será documentada a futuro
 | Componente | Tecnología |
 |---|---|
 | **Procesamiento** | DuckDB + Polars (Python puro, sin JVM) |
@@ -215,20 +215,7 @@ GCS_BUCKET=mi-proyecto
 
 # Fase 2 — DigitalOcean
 STORAGE_BACKEND=local
-LOCAL_DATA_PATH=/data
-```
-
-```python
-# ingestion/storage/backend.py — NINGÚN otro módulo importa google.cloud.storage
-class StorageBackend:
-    def __init__(self):
-        backend = os.getenv("STORAGE_BACKEND", "local")
-        if backend == "gcs":
-            self.fs = fsspec.filesystem("gcs", project=os.environ["GCP_PROJECT_ID"])
-            self._base = f"gs://{os.environ['GCS_BUCKET']}-datalake"
-        elif backend == "local":
-            self.fs = fsspec.filesystem("file")
-            self._base = os.getenv("LOCAL_DATA_PATH", "/data")
+LOCAL_STORAGE_PATH=/data
 ```
 
 ---
@@ -245,7 +232,7 @@ etl-letterboxd/
 │   └── providers.tf
 │   └── terraform.tfvars.example
 │   └── iam.tf
-│   └── backend.tf
+│   └── backend.tf.example
 │
 ├── databricks/                   # Notebooks PySpark por capa
 │   └── 01_bronze_ingestion.py
@@ -254,39 +241,48 @@ etl-letterboxd/
 │   └── 04_dbt_run.py
 │   └── 05_dataplex_scan.py
 │
-├── ingestion/                    # Módulos Python puros — portables entre fases
-│   ├── storage/
-│   │   └── backend.py            # Abstracción fsspec (GCS ↔ local)
-│   ├── api/
-│   │   ├── tmdb_client.py        # Rate limiting 40r/10s + backoff exponencial
-│   │   └── letterboxd_parser.py
-│   └── pipeline/
-│       ├── silver_processor.py   # DuckDB (Fase 2) / PySpark (Fase 1)
-│       └── cli.py                # Entrypoint para n8n
-│
+├── ingestion/                    # Python (actualmente plano, sin subfolders)
+│   ├── __init__.py
+│   ├── bronze_batch.py
+│   ├── storage.py
+│   └── tmdb_client.py
 │
 ├── dataplex/
-│   └── dq_rules/                 # Contratos de calidad como código (YAML)
-│       ├── fact_diary_entries.yaml
-│       ├── fact_ratings.yaml
-│       └── dim_movie.yaml
+│   ├── bq_setup/
+│   │   └── create_dq_results_dataset.sql
+│   ├── dq_rules/                 # Contratos de calidad como código (YAML)
+│   │   ├── fact_diary_entries.yaml
+│   │   ├── fact_ratings.yaml
+│   │   └── dim_movie.yaml
+│   └── scripts/
+│       ├── run_dq_scans.sh
+│       └── sync_to_gcs.sh
 │
-├── docker/                       # Fase 2 — VPS DigitalOcean
-│   ├── docker-compose.yml        # RAM total < 1.5 GB
-│   ├── postgres/
-│   │   ├── postgresql.conf       # shared_buffers=128MB, max_connections=20
-│   │   └── init.sql
-│   └── pipeline/
-│       ├── Dockerfile
-│       └── requirements.txt
+├── cine_analytics/               # dbt project
+│   ├── README.md
+│   ├── dbt_project.yml
+│   ├── package-lock.yml
+│   ├── packages.yml
+│   ├── analyses/
+│   │   └── .gitkeep
+│   ├── macros/
+│   │   └── portability.sql
+│   ├── models/
+│   │   ├── bridges/
+│   │   ├── dimensions/
+│   │   ├── facts/
+│   │   └── staging/
+│   ├── seeds/
+│   ├── snapshots/
+│   │   ├── .gitkeep
+│   │   └── snap_dim_movie.sql
+│   └── tests/
 │
-├── tests/                        # pytest — ingesta y transformación
-│   ├── test_tmdb_client.py       # Primera unidad testeada (rate limit crítico)
-│   ├── test_silver_processor.py
-│   └── test_storage_backend.py
+├── images/
 │
 ├── .env.example                  # Variables documentadas — .env NUNCA se commitea
 ├── .gitignore
+├── requirements.txt
 └── README.md
 ```
 
@@ -307,40 +303,45 @@ etl-letterboxd/
 # 1. Clonar y configurar variables
 git clone https://github.com/rabarrazueta/etl-letterboxd.git
 cd etl-letterboxd
+```
+
 > Importante: **Databricks Jobs NO consumen `.env`**.  
 > En **Fase 1**, la configuración se hace con:
 > - Variables de Terraform (`terraform.tfvars` / `terraform.tfvars.example`)
 > - Secrets (Databricks Secret Scope o GCP Secret Manager vía ADC)
 > - Widgets de Databricks Jobs
 
+```bash
 # 2. Configurar alertas de presupuesto ANTES de desplegar
 # GCP Billing Console → Budgets & Alerts → 25%, 50%, 75%, 90%
-
-# 3. Provisionar infraestructura
+```
 
 ### Terraform backend (state remoto en GCS)
 
-1) Crea un bucket para tfstate (ej: `<tu-proyecto>-tfstate`).
+1) Crea un bucket para tfstate (ej: `<tu-proyecto>-tfstate`).  
 2) Copia el ejemplo y edítalo:
 
 ```bash
 cp terraform/backend.tf.example terraform/backend.tf
+```
 
-3)Edita terraform/backend.tf y reemplaza YOUR_TFSTATE_BUCKET.
-4)Luego ejecuta:
+3) Edita `terraform/backend.tf` y reemplaza `YOUR_TFSTATE_BUCKET`.  
+4) Luego ejecuta:
 
+```bash
 cd terraform
 terraform init
 terraform plan
 terraform apply
-
-
-# 4. Subir CSVs de Letterboxd a Bronze
-gsutil cp *.csv gs://<proyecto>-datalake/bronze/letterboxd/ingestion_date=$(date +%Y-%m-%d)/
-
-# 5. Ejecutar pipeline desde Databricks Workflows (Jobs Compute, no All-Purpose)
-# O disparar desde n8n via HTTP Request → Databricks REST API
 ```
+4) Subir CSVs de Letterboxd a Bronze
+```bash
+gsutil cp *.csv gs://<proyecto>-datalake/bronze/letterboxd/ingestion_date=$(date +%Y-%m-%d)/
+```
+
+5) Ejecutar pipeline desde Databricks Workflows (Jobs Compute, no All-Purpose), o
+disparar desde n8n via HTTP Request → Databricks REST API
+
 ---
 
 ## Buenas Prácticas de Ingeniería Implementadas
@@ -374,7 +375,7 @@ gsutil cp *.csv gs://<proyecto>-datalake/bronze/letterboxd/ingestion_date=$(date
 
 ## 👤 Autor
 
-**Robinson Barrazueta**
+**Robinson Barrazueta**  
 Data Engineer | Automation Solutions Developer | Founder @ Processia Ops
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin)](https://www.linkedin.com/in/robinson-barrazueta/)
